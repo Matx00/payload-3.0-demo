@@ -19,15 +19,30 @@ import {
   UnorderedListFeature,
   UploadFeature,
 } from '@payloadcms/richtext-lexical'
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
+// import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { buildConfig } from 'payload'
+import FormBuilder from '@payloadcms/plugin-form-builder'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+console.log(typeof FormBuilder) // Check if it's a function or something else
 
 export default buildConfig({
+  email: nodemailerAdapter({
+    defaultFromName: 'Dott.ssa Iolanda Grasso',
+    defaultFromAddress: 'admin@example.com',
+    transportOptions: {
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    },
+  }),
   //editor: slateEditor({}),
   editor: lexicalEditor(),
   collections: [
@@ -71,14 +86,14 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  // db: postgresAdapter({
-  //   pool: {
-  //     connectionString: process.env.POSTGRES_URI || ''
-  //   }
-  // }),
-  db: mongooseAdapter({
-    url: process.env.MONGODB_URI || '',
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URI || '',
+    },
   }),
+  // db: mongooseAdapter({
+  //   url: process.env.MONGODB_URI || '',
+  // }),
 
   /**
    * Payload can now accept specific translations from 'payload/i18n/en'
@@ -90,11 +105,28 @@ export default buildConfig({
 
   admin: {
     autoLogin: {
-      email: 'dev@payloadcms.com',
+      email: 'wonderkido66@gmail.com',
       password: 'test',
       prefillOnly: true,
     },
   },
+  // plugins: [
+  //   FormBuilder({
+  //     fields: {
+  //       text: true,
+  //       textarea: false,
+  //       select: false,
+  //       email: true,
+  //       state: false,
+  //       country: false,
+  //       checkbox: true,
+  //       number: true,
+  //       message: true,
+  //       payment: false,
+  //     },
+  //   }),
+  // ],
+
   async onInit(payload) {
     const existingUsers = await payload.find({
       collection: 'users',
